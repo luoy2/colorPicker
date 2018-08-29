@@ -52,12 +52,18 @@ class MainWindow(QtWidgets.QMainWindow, uic.loadUiType('main.ui')[0]):
 
         self.tolerance_edit.setValidator(QtGui.QIntValidator())
         self.cb = QtWidgets.QApplication.clipboard()
+
         keyboard.on_press_key('1', self.color_picked, suppress=False)
         keyboard.on_press_key('2', self.color_picked, suppress=False)
         keyboard.on_press_key('3', self.color_picked, suppress=False)
         keyboard.on_press_key('c', self.generate_button_shotcut, suppress=False)
         keyboard.on_press_key('s', self.region_start, suppress=False)
         keyboard.on_press_key('a', self.region_end, suppress=False)
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.mouse_event_handler)
+        self.timer.start(100)
+
 
     def color_picked(self, keyboard_event):
         key_pressed = int(keyboard_event.name)
@@ -74,13 +80,13 @@ class MainWindow(QtWidgets.QMainWindow, uic.loadUiType('main.ui')[0]):
         pos = mouse.get_position()
         self.region[0] = pos[0]
         self.region[1] = pos[1]
-        self.region_edit.setText(str(self.region))
+        self.region_edit.setText(str(self.region)[1:-1])
 
     def region_end(self, keyboard_event):
         pos = mouse.get_position()
         self.region[2] = pos[0]
         self.region[3] = pos[1]
-        self.region_edit.setText(str(self.region))
+        self.region_edit.setText(str(self.region)[1:-1])
 
     def generate_button_shotcut(self, keyboard_event):
         print('generate!')
@@ -89,7 +95,6 @@ class MainWindow(QtWidgets.QMainWindow, uic.loadUiType('main.ui')[0]):
     def on_generate_button_clicked(self):
         cords_offset = self.cords_dict[1]
         result_list = []
-        first_result = [(0, 0), self.color_dict[1]]
         for i in range(1, 4):
             result = [(self.cords_dict[i][0] - cords_offset[0], self.cords_dict[i][1] - cords_offset[1]),
                       self.color_dict[i]]
@@ -98,6 +103,12 @@ class MainWindow(QtWidgets.QMainWindow, uic.loadUiType('main.ui')[0]):
         self.cb.clear(mode=self.cb.Clipboard)
         self.cb.setText(result_str, mode=self.cb.Clipboard)
         self.textBrowser.setText(result_str)
+
+    def mouse_event_handler(self):
+        pos = mouse.get_position()
+        pixel = pyautogui.pixel(*pos)
+        self.statusBar().showMessage(f'pos:{pos}; pixel:{pixel}')
+
 
 
 if __name__ == "__main__":
